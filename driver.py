@@ -46,12 +46,10 @@ class wordsInDocument:
 class tokensInDocument:
   def __init__(self):
     self.tag = ""
-    self.words = {}
-    self.num = {}
+    self.words = []
  
-  def addWord(self, wordIn, indexIn):
-    self.words[wordIn] = indexIn
-    self.num[indexIn] = wordIn
+  def addWord(self, wordIn):
+    self.words.append(wordIn)
 
 class probability:
   def __init__(self):
@@ -160,6 +158,7 @@ def extractEverythingForTraining(classes, documents):
 
  
             body = documents[i].body
+#            print "Body: " + body
             tempBody = ""
 #            isNum = False
             for w in range(len(body)):
@@ -207,7 +206,6 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
     j = 0
     notFound = True
     while j < len(documents[i].tags) and notFound:
-      index1 = 0
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
@@ -227,14 +225,10 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
               elif title[w] == ' ' or title[w] == '\r' or title[w] == '\n' \
                    or title[w] == '\t' or title[w] == '/':
                 if vocabularyWord.has_key(tempTitle):
-                  if not(tempTokensDocument.words.has_key(tempTitle)):
-                    tempTokensDocument.addWord(tempTitle, index)
-                    index += 1
+                  tempTokensDocument.addWord(tempTitle)
                 tempTitle = '';
             if vocabularyWord.has_key(tempTitle):
-              if not(tempTokensDocument.words.has_key(tempTitle)):
-                tempTokensDocument.addWord(tempTitle, index)
-                index += 1
+                tempTokensDocument.addWord(tempTitle)
 
                     
                      
@@ -251,14 +245,10 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
               elif dateline[w] == ' ' or dateline[w] == '\r' or dateline[w] == '\n' \
                    or dateline[w] == '\t' or dateline[w] == '/' or ((w + 1) >= len(dateline)):
                 if vocabularyWord.has_key(tempDateline):
-                  if not(tempTokensDocument.words.has_key(tempDateline)):
-                    tempTokensDocument.addWord(tempDateline, index)
-                    index += 1
+                  tempTokensDocument.addWord(tempDateline)
                 tempDateline = '';
             if vocabularyWord.has_key(tempDateline):
-              if not(tempTokensDocument.words.has_key(tempDateline)):
-                tempTokensDocument.addWord(tempDateline, index)
-                index += 1
+              tempTokensDocument.addWord(tempDateline)
  
             body = documents[i].body
             tempBody = ""
@@ -272,14 +262,10 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
               elif body[w] == ' ' or body[w] == '\r' or body[w] == '\n' \
                    or body[w] == '\t' or body[w] == '/' or ((w + 1) >= len(body)):
                 if vocabularyWord.has_key(tempBody):
-                  if not(tempTokensDocument.words.has_key(tempBody)):
-                    tempTokensDocument.addWord(tempBody, index)
-                    index += 1
+                  tempTokensDocument.addWord(tempBody)
                 tempBody = '';
             if vocabularyWord.has_key(tempBody):
-              if not(tempTokensDocument.words.has_key(tempBody)):
-                tempTokensDocument.addWord(tempBody, index)
-                index += 1
+              tempTokensDocument.addWord(tempBody)
             
             tokensInTheDocuments.append(tempTokensDocument)
             
@@ -304,6 +290,8 @@ def trainMultinomialNB(classes, documents):
   vocabularyWord, vocabularyNum, numDocs, numDocsInClass, wordsInTheDocuments = \
       extractEverythingForTraining(classes, documents)
   
+#  print "Length dict: " + str(len(vocabularyWord))
+  
   condProb = [probability() for i in range(len(vocabularyNum))]
   
   for i in range(len(numDocsInClass)):
@@ -315,10 +303,13 @@ def trainMultinomialNB(classes, documents):
     for j in range(len(vocabularyNum)):
       tempVocWord = vocabularyNum[j] 
       timesInDocs = countTokensOfTerm(wordsInTheDocuments[i].words, tempVocWord)
+#      print "term1: " + tempVocWord + " times in doc: " + str(timesInDocs)
       Tct.append(timesInDocs)
       TctSum += (timesInDocs + 1)
       if j%100 == 0:
         print "100 words processed."
+
+#    print "Tct Sum: " + str(TctSum)
       
     print "finshed counting word in class: " + str(i) + " now calculating cond prob."
     
@@ -327,6 +318,7 @@ def trainMultinomialNB(classes, documents):
       
       condProb[j].vocabTerm = vocabularyNum[j]
       condProb[j].addProb(tempVal)
+#      print "term: " + vocabularyNum[j] + " Prob: " + str(tempVal)
       
   return vocabularyWord, vocabularyNum, prior, condProb  
 
@@ -341,7 +333,7 @@ def applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents):
     highestScores[i].actualTag = tokens[i].tag
   
   for i in range(len(tokens)):
-    print "Processing doc: " + str(i) + " out of " + len(tokens)
+    print "Processing doc: " + str(i) + " out of " + str(len(tokens))
     for j in range(len(classes)):
       tempPrior = prior[j]
 
@@ -352,8 +344,8 @@ def applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents):
         tempScore = 0
       score = tempScore
 
-      for k in range(len(tokens[i].num)):
-        tempWord = tokens[i].num[k]
+      for k in range(len(tokens[i].words)):
+        tempWord = tokens[i].words[k]
         locWord = vocabularyWord[tempWord]
         if condProb[locWord].vocabTerm != tempWord:
           print "ERROR finding word in apply MNB! Fix code!!!"
@@ -381,11 +373,17 @@ def main():
       className = ""  
     else:
       className += tempClassNames[i]
+      
+  #classes = []
+  
+  #classes.append("China")
+  #classes.append("Japan")
   
   documents = []
   index = -1
   for i in range(22):
     fileName = "reuters21578-xml/reut2-" + str(i) + ".xml"
+    #fileName = "reuters21578-xml/test2.xml"
     parser = xml.dom.minidom.parse(fileName)
     for node in parser.getElementsByTagName("REUTERS"):
       tempDoc = document()
@@ -481,6 +479,13 @@ def main():
   vocabularyWord, vocabularyNum, prior, condProb = trainMultinomialNB(classes, documents)
   results = applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents)
   
+  count = 0
+  for i in range(len(results)):
+    if results[i].guessedTag == results[i].actualTag:
+      count += 1
+  
+  print "Files: " + str(len(results)) + " count: " + str(count)
+  
   tp = []
   fp = []
   fn = []
@@ -494,6 +499,7 @@ def main():
     fp.append(0)
     fn.append(0)
     
+    
     for i in range(len(results)):
       #print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
       #print results[i].guessedTag + " score: " + str(results[i].score)
@@ -506,6 +512,8 @@ def main():
         else:
           fn[j] += 1
         
+    print "classes: " + str(j) + " tp: " + str(tp[j]) + " fp: " + str(tp[j]) + " fp: " + str(tp[j])
+
     p.append( tp[j]/(tp[j]+fp[j]) )
     r.append( tp[j]/(tp[j]+fn[j]) )
     
