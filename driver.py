@@ -206,6 +206,7 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
     j = 0
     notFound = True
     while j < len(documents[i].tags) and notFound:
+      index1 = 0
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
@@ -495,10 +496,9 @@ def main():
   f1 = []
   
   for j in range(len(classes)):
-    tp.append(0)
-    fp.append(0)
-    fn.append(0)
-    
+    tp.append(0.0)
+    fp.append(0.0)
+    fn.append(0.0)
     
     for i in range(len(results)):
       #print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
@@ -506,20 +506,34 @@ def main():
     
       if results[i].actualTag == classes[j] or results[i].guessedTag == classes[j]:
         if results[i].guessedTag == results[i].actualTag:
-          tp[j] += 1
+          tp[j] += 1.0
         elif classes[j] == results[i].guessedTag:
-          fp[j] += 1
+          fp[j] += 1.0
         else:
-          fn[j] += 1
-        
-    print "classes: " + str(j) + " tp: " + str(tp[j]) + " fp: " + str(tp[j]) + " fp: " + str(tp[j])
+          fn[j] += 1.0
+      
+    print classes[j]
+    print "\ttp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
 
-    p.append( tp[j]/(tp[j]+fp[j]) )
-    r.append( tp[j]/(tp[j]+fn[j]) )
+    if tp[j]+fp[j] == 0:
+      p.append( 0.0 )
+      print "\tERROR: div by zero calculating precision"
+    else:
+      p.append( tp[j]/(tp[j]+fp[j]) )
+      
+    if tp[j]+fp[j] == 0:
+      r.append( 0.0 )
+      print "\tERROR: div by zero calculating recall"
+    else:
+      r.append( tp[j]/(tp[j]+fn[j]) )
     
-    f1.append( p[j]*r[j]*2/(p[j]+r[j]) )
+    if p[j]+r[j] == 0:
+      print "\tERROR: div by zero calculating f1 score"
+      f1.append( 0.0 )
+    else:
+      f1.append( p[j]*r[j]*2.0/(p[j]+r[j]) )
     
-    print "class: " + classes[j] + " f1 score: " + str(f1[j])
+      print "\tf1 score: " + str(f1[j])
 
 #class maxScoreDoc:
 #  def __init__(self):
