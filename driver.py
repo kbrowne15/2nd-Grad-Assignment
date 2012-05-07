@@ -206,6 +206,7 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
     j = 0
     notFound = True
     while j < len(documents[i].tags) and notFound:
+      index1 = 0
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
@@ -501,23 +502,28 @@ def main():
     
     
     for i in range(len(results)):
-      #print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
-      #print results[i].guessedTag + " score: " + str(results[i].score)
-    
-      if results[i].actualTag == classes[j] or results[i].guessedTag == classes[j]:
-        if results[i].guessedTag == results[i].actualTag:
-          tp[j] += 1
-        elif classes[j] == results[i].guessedTag:
-          fp[j] += 1
-        else:
-          fn[j] += 1
+      if classes[j] == results[i].actualTag and results[i].guessedTag == results[i].actualTag: #c = aT & aT = gT
+        tp[j] += 1
+      if classes[j] == results[i].guessedTag and results[i].guessedTag != results[i].actualTag: #c = gT & gT != aT
+        fp[j] += 1
+      if classes[j] != results[i].guessedTag and results[i].guessedTag != results[i].actualTag: #gT != c & gT != aT
+        fn[j] += 1
         
-    print "classes: " + str(j) + " tp: " + str(tp[j]) + " fp: " + str(tp[j]) + " fp: " + str(tp[j])
-
-    p.append( tp[j]/(tp[j]+fp[j]) )
-    r.append( tp[j]/(tp[j]+fn[j]) )
+    print "class: " + str(j) + " tp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
+    if fp[j] == 0 and tp[j] == 0:
+      p.append(0.0)
+    else:
+      p.append( float(tp[j])/(float(tp[j])+float(fp[j])) )
     
-    f1.append( p[j]*r[j]*2/(p[j]+r[j]) )
+    if fn[j] == 0 and tp[j] == 0:
+      r.append(0.0)
+    else:
+      r.append( float(tp[j])/(float(tp[j])+float(fn[j])) )
+    
+    if p[j] == 0 or r[j] == 0:
+      f1 = 0
+    else:
+      f1.append( float(p[j])*float(r[j])*2/(float(p[j])+float(r[j])) )
     
     print "class: " + classes[j] + " f1 score: " + str(f1[j])
 
