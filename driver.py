@@ -341,7 +341,7 @@ def applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents):
     highestScores[i].actualTag = tokens[i].tag
   
   for i in range(len(tokens)):
-    print "Processing doc: " + i + " out of " + len(tokens)
+    print "Processing doc: " + str(i) + " out of " + len(tokens)
     for j in range(len(classes)):
       tempPrior = prior[j]
 
