@@ -195,8 +195,8 @@ def extractEverythingForTraining(classes, documents):
         index1 += 1
       j += 1
 
-  for i in range(len(vocabularyWord)):
-    print str(vocabularyWord[vocabularyNum[i]]) + ":  " + vocabularyNum[i]
+  #for i in range(len(vocabularyWord)):
+  #  print str(vocabularyWord[vocabularyNum[i]]) + ":  " + vocabularyNum[i]
 
   return vocabularyWord, vocabularyNum, numDocs, numDocsInClass, wordsInTheDocuments
 
@@ -217,15 +217,9 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
             tempTokensDocument.tag = classes[index1]
             title = documents[i].title
             tempTitle = ""
-#            isNum = False
             for w in range(len(title)):
               if (title[w] >= 'a' and title[w] <= 'z') or title[w] == "'" or title[w] == "-":
                 tempTitle += title[w]
-#              elif (title[w] >= '0' and title[w] <= '9'): 
-#                tempTitle += title[w]
-#                isNum = True
-#              elif (title[w] == '.' and isNum): 
-#                tempTitle += title[w]
               #if the character is capitalize, make it lower case
               elif(title[w] >= 'A' and title[w] <= 'Z'):
                 tempTitle += title[w].lower()
@@ -237,7 +231,6 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
                     tempTokensDocument.addWord(tempTitle, index)
                     index += 1
                 tempTitle = '';
-#                isNum = False
             if vocabularyWord.has_key(tempTitle):
               if not(tempTokensDocument.words.has_key(tempTitle)):
                 tempTokensDocument.addWord(tempTitle, index)
@@ -247,16 +240,10 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
                      
             dateline = documents[i].dateline
             tempDateline = ""
-#            isNum = False
             for w in range(len(dateline)):
               if (dateline[w] >= 'a' and dateline[w] <= 'z') or dateline[w] == "'" \
                   or dateline[w] == "-":
                 tempDateline += dateline[w]
-#              elif (dateline[w] >= '0' and dateline[w] <= '9'): 
-#                tempDateline += dateline[w]
-#                isNum = True
-#              elif (dateline[w] == '.' and isNum): 
-#                tempDateline += dateline[w]
               #if the character is capitalize, make it lower case
               elif(dateline[w] >= 'A' and dateline[w] <= 'Z'):
                 tempDateline += dateline[w].lower()
@@ -268,7 +255,6 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
                     tempTokensDocument.addWord(tempDateline, index)
                     index += 1
                 tempDateline = '';
-#                isNum = False
             if vocabularyWord.has_key(tempDateline):
               if not(tempTokensDocument.words.has_key(tempDateline)):
                 tempTokensDocument.addWord(tempDateline, index)
@@ -276,15 +262,9 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
  
             body = documents[i].body
             tempBody = ""
-#            isNum = False
             for w in range(len(body)):
               if (body[w] >= 'a' and body[w] <= 'z') or body[w] == "'" or body[w] == "-":
                 tempBody += body[w]
-#              elif (body[w] >= '0' and body[w] <= '9'): 
-#                tempBody += body[w]
-#                isNum = True
-#              elif (body[w] == '.' and isNum): 
-#                tempBody += body[w]
               #if the character is capitalize, make it lower case
               elif(body[w] >= 'A' and body[w] <= 'Z'):
                 tempBody += body[w].lower()
@@ -296,7 +276,6 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
                     tempTokensDocument.addWord(tempBody, index)
                     index += 1
                 tempBody = '';
-#                isNum = False
             if vocabularyWord.has_key(tempBody):
               if not(tempTokensDocument.words.has_key(tempBody)):
                 tempTokensDocument.addWord(tempBody, index)
@@ -307,9 +286,6 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
         index1 += 1
       j += 1
 
-#  for i in range(len(vocabularyWord)):
-#    print str(vocabularyWord[vocabularyNum[i]]) + ":  " + vocabularyNum[i]
-    
   return tokensInTheDocuments
   
 def countTokensOfTerm(wordsInDocuments, tempVocWord):
@@ -331,8 +307,8 @@ def trainMultinomialNB(classes, documents):
   condProb = [probability() for i in range(len(vocabularyNum))]
   
   for i in range(len(numDocsInClass)):
-#    print "class: " + classes[i]
-    priorVal = numDocsInClass[i]/numDocs
+    print "processing class: " + str(i)
+    priorVal = float(numDocsInClass[i])/float(numDocs)
     prior.append(priorVal)
     Tct = []
     TctSum = 0
@@ -341,54 +317,38 @@ def trainMultinomialNB(classes, documents):
       timesInDocs = countTokensOfTerm(wordsInTheDocuments[i].words, tempVocWord)
       Tct.append(timesInDocs)
       TctSum += (timesInDocs + 1)
-    print "TctSum: " + str(TctSum)
+      if j%100 == 0:
+        print "100 words processed."
+      
+    print "finshed counting word in class: " + str(i) + " now calculating cond prob."
+    
     for j in range(len(vocabularyNum)):
-      tempVal = (Tct[j] + 1.0)/TctSum
+      tempVal = (float(Tct[j]) + 1.0)/float(TctSum)
       
       condProb[j].vocabTerm = vocabularyNum[j]
       condProb[j].addProb(tempVal)
-
-#  for i in range(len(condProb)):
-#    print "term: " + condProb[i].vocabTerm + "  ",
-#    for j in range(len(condProb[i].prob)):
-#      print str(condProb[i].prob[j]) + ", ", 
-#    print ""
       
   return vocabularyWord, vocabularyNum, prior, condProb  
 
-#class probability:
-#  def __init__(self):
-#    self.vocabTerm = ""
-#    self.prob = []
-#  def addProb(self, probIn):
-#    self.words.append(probIn)
 
 
 def applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents):
+  print "Now working on applying the multinomial."
   tokens = extractTokensFromDoc(classes, documents, vocabularyWord)
- 
-  for i in range(len(prior)):
-    print str(prior[i]) + ", ", 
-  print ""
-  
-  for i in range(len(tokens)):
-    print "doc: " + str(i)
-    for j in range(len(tokens[i].num)):
-      print tokens[i].num[j] + ", ",
-    print ""
   
   highestScores = [maxScoreDoc() for i in range(len(tokens))]
   for i in range(len(tokens)):
     highestScores[i].actualTag = tokens[i].tag
   
   for i in range(len(tokens)):
+    print "Processing doc: " + i + " out of " + len(tokens)
     for j in range(len(classes)):
       tempPrior = prior[j]
 
       if tempPrior != 0:
         tempScore = math.log10(tempPrior)
       else:
-        #print "Error in applyMNB temp prior should not be 0."
+        print "Error in applyMNB temp prior should not be 0."
         tempScore = 0
       score = tempScore
 
@@ -398,7 +358,7 @@ def applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents):
         if condProb[locWord].vocabTerm != tempWord:
           print "ERROR finding word in apply MNB! Fix code!!!"
         score += math.log10(condProb[locWord].prob[j])
-      print "class: " + classes[j] + " score: " + str(score)
+      #print "class: " + classes[j] + " score: " + str(score)
       if j == 0:
         highestScores[i].score = score
         highestScores[i].guessedTag = classes[j]
@@ -424,9 +384,8 @@ def main():
   
   documents = []
   index = -1
-  for i in range(1):
-    #fileName = "reuters21578-xml/reut2-" + str(i) + ".xml"
-    fileName = "reuters21578-xml/test.xml"
+  for i in range(22):
+    fileName = "reuters21578-xml/reut2-" + str(i) + ".xml"
     parser = xml.dom.minidom.parse(fileName)
     for node in parser.getElementsByTagName("REUTERS"):
       tempDoc = document()
@@ -522,9 +481,37 @@ def main():
   vocabularyWord, vocabularyNum, prior, condProb = trainMultinomialNB(classes, documents)
   results = applyMultinomialNB(classes, vocabularyWord, prior, condProb, documents)
   
-  for i in range(len(results)):
-    print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
-    print results[i].guessedTag + " score: " + str(results[i].score)
+  tp = []
+  fp = []
+  fn = []
+  
+  p = []
+  r = []
+  f1 = []
+  
+  for j in range(len(classes)):
+    tp.append(0)
+    fp.append(0)
+    fn.append(0)
+    
+    for i in range(len(results)):
+      #print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
+      #print results[i].guessedTag + " score: " + str(results[i].score)
+    
+      if results[i].actualTag == classes[j] or results[i].guessedTag == classes[j]:
+        if results[i].guessedTag == results[i].actualTag:
+          tp[j] += 1
+        elif classes[j] == results[i].guessedTag:
+          fp[j] += 1
+        else:
+          fn[j] += 1
+        
+    p.append( tp[j]/(tp[j]+fp[j]) )
+    r.append( tp[j]/(tp[j]+fn[j]) )
+    
+    f1.append( p[j]*r[j]*2/(p[j]+r[j]) )
+    
+    print "class: " + classes[j] + " f1 score: " + str(f1[j])
 
 #class maxScoreDoc:
 #  def __init__(self):
