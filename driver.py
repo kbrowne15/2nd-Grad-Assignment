@@ -296,7 +296,11 @@ def trainMultinomialNB(classes, documents):
   condProb = [probability() for i in range(len(vocabularyNum))]
   
   for i in range(len(numDocsInClass)):
-    print "processing class: " + str(i)
+    print "processing class: " + classes[i]
+    print "\t" + str(numDocsInClass[i]) + " training documents"
+  
+  for i in range(len(numDocsInClass)):
+    print "processing class: " + classes[i]
     priorVal = float(numDocsInClass[i])/float(numDocs)
     prior.append(priorVal)
     Tct = []
@@ -307,8 +311,6 @@ def trainMultinomialNB(classes, documents):
 #      print "term1: " + tempVocWord + " times in doc: " + str(timesInDocs)
       Tct.append(timesInDocs)
       TctSum += (timesInDocs + 1)
-      if j%100 == 0:
-        print "100 words processed."
 
 #    print "Tct Sum: " + str(TctSum)
       
@@ -368,12 +370,13 @@ def main():
   tempClassNames = fin.read()
   fin.close()
   className = ""
+      
   for i in range(len(tempClassNames)):
     if(tempClassNames[i] == '\r' or tempClassNames[i] == '\n'):
       classes.append(className)
       className = ""  
     else:
-      className += tempClassNames[i]
+      className += tempClassNames[i]  
       
   #classes = []
   
@@ -511,7 +514,7 @@ def main():
           fp[j] += 1.0
         else:
           fn[j] += 1.0
-      
+        
     print classes[j]
     print "\ttp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
 
