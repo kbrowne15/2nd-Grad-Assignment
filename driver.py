@@ -247,9 +247,12 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
     #stop once the first set of matching tags has been found
     while j < len(documents[i].tags) and notFound:
       index1 = 0
+<<<<<<< HEAD
       
       #go through classes we are training for to see if the tags match
       #stop once the first set of matching tags has been found
+=======
+>>>>>>> 95e29febe3ef2309a7004ac90f609eea38c73aad
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
@@ -552,10 +555,9 @@ def main():
   f1 = []
   
   for j in range(len(classes)):
-    tp.append(0)
-    fp.append(0)
-    fn.append(0)
-    
+    tp.append(0.0)
+    fp.append(0.0)
+    fn.append(0.0)
     
     for i in range(len(results)):
       if classes[j] == results[i].actualTag and results[i].guessedTag == results[i].actualTag: #c = aT & aT = gT
@@ -580,8 +582,40 @@ def main():
       f1 = 0
     else:
       f1.append( float(p[j])*float(r[j])*2/(float(p[j])+float(r[j])) )
+
+      #print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
+      #print results[i].guessedTag + " score: " + str(results[i].score)
     
-    print "class: " + classes[j] + " f1 score: " + str(f1[j])
+      if results[i].actualTag == classes[j] or results[i].guessedTag == classes[j]:
+        if results[i].guessedTag == results[i].actualTag:
+          tp[j] += 1.0
+        elif classes[j] == results[i].guessedTag:
+          fp[j] += 1.0
+        else:
+          fn[j] += 1.0
+      
+    print classes[j]
+    print "\ttp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
+
+    if tp[j]+fp[j] == 0:
+      p.append( 0.0 )
+      print "\tERROR: div by zero calculating precision"
+    else:
+      p.append( tp[j]/(tp[j]+fp[j]) )
+      
+    if tp[j]+fp[j] == 0:
+      r.append( 0.0 )
+      print "\tERROR: div by zero calculating recall"
+    else:
+      r.append( tp[j]/(tp[j]+fn[j]) )
+    
+    if p[j]+r[j] == 0:
+      print "\tERROR: div by zero calculating f1 score"
+      f1.append( 0.0 )
+    else:
+      f1.append( p[j]*r[j]*2.0/(p[j]+r[j]) )
+    
+      print "\tf1 score: " + str(f1[j])
 
 
 if __name__ == "__main__":
