@@ -7,6 +7,12 @@ import pprint
 import xml.dom.minidom
 from xml.dom.minidom import Node
 
+#################################################
+# document
+#
+#	A class to hold all the document information
+#	and the body of the documentation
+#################################################
 class document:
   def __init__(self):
     self.topics = ""
@@ -18,7 +24,6 @@ class document:
     self.people = []
     self.orgs = []
     self.exchanges = []
-    #self.unknown
     self.author = ""
     self.dateline = ""
     self.title = ""
@@ -35,6 +40,12 @@ class document:
   def addExchange(self, exchangeIn):
     self.exchanges.append(exchangeIn)
 
+#################################################
+# words in document
+#
+#	A class to hold all the words in one document
+#	and the tag that classifies the document
+#################################################
 class wordsInDocument:
   def __init__(self):
     self.tag = ""
@@ -43,14 +54,12 @@ class wordsInDocument:
   def addWord(self, wordIn):
     self.words.append(wordIn)
 
-class tokensInDocument:
-  def __init__(self):
-    self.tag = ""
-    self.words = []
- 
-  def addWord(self, wordIn):
-    self.words.append(wordIn)
-
+#################################################
+# probability
+#
+#	A class to hold a term and the probability of
+#	its appearence in the documents
+#################################################
 class probability:
   def __init__(self):
     self.vocabTerm = ""
@@ -58,14 +67,35 @@ class probability:
   def addProb(self, probIn):
     self.prob.append(probIn)
 
+#################################################
+# max score doc
+#
+#	A class to hold the actual tag that classifies
+#	the document, the tag that our system guessed,
+# and the highest score which came from 
+# comparing the guessed tag with the doc
+#################################################
 class maxScoreDoc:
   def __init__(self):
     self.actualTag = ""
     self.guessedTag = ""
     self.score = -1
 
-
-#AN IMPROVEMENT COULD BE GETTING RID OF CAP AND 
+#################################################
+# extract everything for training
+#
+#	A function which goes through all of the 
+# documents that were read in. If the document
+# is a training document and it has a tag that
+# match one of the tags we are training for, then
+# we extract the words from the document, put
+# them in a dictionary, and put them in a class
+# that contains all the words in all of the 
+# documents that match the tag. The number of
+# training documents along with the number of
+# documents for each tag are recorded and 
+# returned.
+#################################################
 def extractEverythingForTraining(classes, documents):
   vocabularyWord = {}
   vocabularyNum = {}
@@ -77,11 +107,16 @@ def extractEverythingForTraining(classes, documents):
     wordsInTheDocuments[i].tag = classes[i]
     numDocsInClass.append(0)
 
+  #iterate through all documents read in from the files
   for i in range(len(documents)):
     j = 0
     notFound = True
+    #go through tags of documents to see if they match the tags we are training for
+    #stop once the first set of matching tags has been found
     while j < len(documents[i].tags) and notFound:
       index1 = 0
+      #go through classes we are training for to see if the tags match
+      #stop once the first set of matching tags has been found
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
@@ -90,15 +125,10 @@ def extractEverythingForTraining(classes, documents):
             numDocsInClass[index1] += 1
             title = documents[i].title
             tempTitle = ""
-#            isNum = False
+            #Go through the whole title to extract all the words in the title
             for w in range(len(title)):
               if (title[w] >= 'a' and title[w] <= 'z') or title[w] == "'" or title[w] == "-":
                 tempTitle += title[w]
-#              elif (title[w] >= '0' and title[w] <= '9'): 
-#                tempTitle += title[w]
-#                isNum = True
-#              elif (title[w] == '.' and isNum): 
-#                tempTitle += title[w]
               #if the character is capitalize, make it lower case
               elif(title[w] >= 'A' and title[w] <= 'Z'):
                 tempTitle += title[w].lower()
@@ -108,14 +138,16 @@ def extractEverythingForTraining(classes, documents):
                 #the word is not empty and is not a simple word
                 if tempTitle != '' and len(tempTitle) > 3:
                   wordsInTheDocuments[index1].addWord(tempTitle)
+                  #if the word is not already in the vocabulary, add it
                   if not(vocabularyWord.has_key(tempTitle)):
                     vocabularyWord[tempTitle] = vocabIndex
                     vocabularyNum[vocabIndex] = tempTitle
                     vocabIndex += 1
                 tempTitle = '';
-#                isNum = False
+            #the word is not empty and is not a simple word
             if tempTitle != '' and len(tempTitle) > 3:
               wordsInTheDocuments[index1].addWord(tempTitle)
+              #if the word is not already in the vocabulary, add it
               if not(vocabularyWord.has_key(tempTitle)):
                 vocabularyWord[tempTitle] = vocabIndex
                 vocabularyNum[vocabIndex] = tempTitle
@@ -124,16 +156,11 @@ def extractEverythingForTraining(classes, documents):
                      
             dateline = documents[i].dateline
             tempDateline = ""
-#            isNum = False
+            #Go through the whole dateline to extract all the words in the dateline
             for w in range(len(dateline)):
               if (dateline[w] >= 'a' and dateline[w] <= 'z') or dateline[w] == "'" \
                   or dateline[w] == "-":
                 tempDateline += dateline[w]
-#              elif (dateline[w] >= '0' and dateline[w] <= '9'): 
-#                tempDateline += dateline[w]
-#                isNum = True
-#              elif (dateline[w] == '.' and isNum): 
-#                tempDateline += dateline[w]
               #if the character is capitalize, make it lower case
               elif(dateline[w] >= 'A' and dateline[w] <= 'Z'):
                 tempDateline += dateline[w].lower()
@@ -143,14 +170,16 @@ def extractEverythingForTraining(classes, documents):
                 #the word is not empty and is not a simple word
                 if tempDateline != '' and len(tempDateline) > 3:
                   wordsInTheDocuments[index1].addWord(tempDateline)
+                  #if the word is not already in the vocabulary, add it
                   if not(vocabularyWord.has_key(tempDateline)):
                     vocabularyWord[tempDateline] = vocabIndex
                     vocabularyNum[vocabIndex] = tempDateline
                     vocabIndex += 1
                 tempDateline = '';
-#                isNum = False
+            #the word is not empty and is not a simple word
             if tempDateline != '' and len(tempDateline) > 3:
               wordsInTheDocuments[index1].addWord(tempDateline)
+              #if the word is not already in the vocabulary, add it
               if not(vocabularyWord.has_key(tempDateline)):
                 vocabularyWord[tempDateline] = vocabIndex
                 vocabularyNum[vocabIndex] = tempDateline
@@ -160,15 +189,10 @@ def extractEverythingForTraining(classes, documents):
             body = documents[i].body
 #            print "Body: " + body
             tempBody = ""
-#            isNum = False
+            #Go through the whole body to extract all the words in the body
             for w in range(len(body)):
               if (body[w] >= 'a' and body[w] <= 'z') or body[w] == "'" or body[w] == "-":
                 tempBody += body[w]
-#              elif (body[w] >= '0' and body[w] <= '9'): 
-#                tempBody += body[w]
-#                isNum = True
-#              elif (body[w] == '.' and isNum): 
-#                tempBody += body[w]
               #if the character is capitalize, make it lower case
               elif(body[w] >= 'A' and body[w] <= 'Z'):
                 tempBody += body[w].lower()
@@ -178,14 +202,16 @@ def extractEverythingForTraining(classes, documents):
                 #the word is not empty and is not a simple word
                 if tempBody != '' and len(tempBody) > 3:
                   wordsInTheDocuments[index1].addWord(tempBody)
+                  #if the word is not already in the vocabulary, add it
                   if not(vocabularyWord.has_key(tempBody)):
                     vocabularyWord[tempBody] = vocabIndex
                     vocabularyNum[vocabIndex] = tempBody
                     vocabIndex += 1
                 tempBody = '';
-#                isNum = False
+            #the word is not empty and is not a simple word
             if tempBody != '' and len(tempBody) > 3:
               wordsInTheDocuments[index1].addWord(tempBody)
+              #if the word is not already in the vocabulary, add it
               if not(vocabularyWord.has_key(tempBody)):
                 vocabularyWord[tempBody] = vocabIndex
                 vocabularyNum[vocabIndex] = tempBody
@@ -199,23 +225,41 @@ def extractEverythingForTraining(classes, documents):
 
   return vocabularyWord, vocabularyNum, numDocs, numDocsInClass, wordsInTheDocuments
 
+#################################################
+# extract tokens from doc
+#
+#	A function which goes through all of the 
+# documents that were read in. If the document
+# is a test document and it has a tag that
+# match one of the tags we are training for, then
+# we extract the words from the document and put 
+# them in a class along with the tag that 
+# corresponds to the document.
+#################################################
 def extractTokensFromDoc(classes, documents, vocabularyWord):
   tokensInTheDocuments = []
 
+  #iterate through all documents read in from the files
   for i in range(len(documents)):
     j = 0
     notFound = True
+    #go through tags of documents to see if they match the tags we are training for
+    #stop once the first set of matching tags has been found
     while j < len(documents[i].tags) and notFound:
       index1 = 0
+      
+      #go through classes we are training for to see if the tags match
+      #stop once the first set of matching tags has been found
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
           if documents[i].lewisSplit == "TEST": 
             index = 0
-            tempTokensDocument = tokensInDocument()
+            tempTokensDocument = wordsInDocument()
             tempTokensDocument.tag = classes[index1]
             title = documents[i].title
             tempTitle = ""
+            #Go through the whole title to extract all the words in the title
             for w in range(len(title)):
               if (title[w] >= 'a' and title[w] <= 'z') or title[w] == "'" or title[w] == "-":
                 tempTitle += title[w]
@@ -225,16 +269,18 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
               #the word being built is finished
               elif title[w] == ' ' or title[w] == '\r' or title[w] == '\n' \
                    or title[w] == '\t' or title[w] == '/':
+                #if the word is in the vocabulary, add it to the words in the doc
                 if vocabularyWord.has_key(tempTitle):
                   tempTokensDocument.addWord(tempTitle)
                 tempTitle = '';
+            
+            #if the word is in the vocabulary, add it to the words in the doc
             if vocabularyWord.has_key(tempTitle):
                 tempTokensDocument.addWord(tempTitle)
 
-                    
-                     
             dateline = documents[i].dateline
             tempDateline = ""
+            #Go through the whole dateline to extract all the words in the dateline
             for w in range(len(dateline)):
               if (dateline[w] >= 'a' and dateline[w] <= 'z') or dateline[w] == "'" \
                   or dateline[w] == "-":
@@ -245,14 +291,17 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
               #the word being built is finished
               elif dateline[w] == ' ' or dateline[w] == '\r' or dateline[w] == '\n' \
                    or dateline[w] == '\t' or dateline[w] == '/' or ((w + 1) >= len(dateline)):
+                #if the word is in the vocabulary, add it to the words in the doc   
                 if vocabularyWord.has_key(tempDateline):
                   tempTokensDocument.addWord(tempDateline)
                 tempDateline = '';
+            #if the word is in the vocabulary, add it to the words in the doc
             if vocabularyWord.has_key(tempDateline):
               tempTokensDocument.addWord(tempDateline)
  
             body = documents[i].body
             tempBody = ""
+            #Go through the whole body to extract all the words in the body
             for w in range(len(body)):
               if (body[w] >= 'a' and body[w] <= 'z') or body[w] == "'" or body[w] == "-":
                 tempBody += body[w]
@@ -262,9 +311,11 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
               #the word being built is finished
               elif body[w] == ' ' or body[w] == '\r' or body[w] == '\n' \
                    or body[w] == '\t' or body[w] == '/' or ((w + 1) >= len(body)):
+                #if the word is in the vocabulary, add it to the words in the doc 
                 if vocabularyWord.has_key(tempBody):
                   tempTokensDocument.addWord(tempBody)
                 tempBody = '';
+            #if the word is in the vocabulary, add it to the words in the doc 
             if vocabularyWord.has_key(tempBody):
               tempTokensDocument.addWord(tempBody)
             
@@ -274,7 +325,12 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
       j += 1
 
   return tokensInTheDocuments
-  
+
+#################################################
+# count Tokens Of Term
+#
+#	A function goes th
+#################################################
 def countTokensOfTerm(wordsInDocuments, tempVocWord):
   count = 0
   for i in range(len(wordsInDocuments)):
@@ -526,49 +582,6 @@ def main():
       f1.append( float(p[j])*float(r[j])*2/(float(p[j])+float(r[j])) )
     
     print "class: " + classes[j] + " f1 score: " + str(f1[j])
-
-#class maxScoreDoc:
-#  def __init__(self):
-#    self.actualTag = ""
-#    self.guessedTag = ""
-#    self.score = -1
-
-
-"""  for i in range(len(documents)):
-    print "topics: " + documents[i].topics
-    print "lewisSplit: " + documents[i].lewisSplit
-    print "newID: " + documents[i].newId
-    print "date: " + documents[i].date
-
-    print "tags: ",
-    for j in range(len(documents[i].tags)):
-      print documents[i].tags[j] + ", ",
-
-    print ""
-    print "places: ",
-    for j in range(len(documents[i].places)):
-      print documents[i].places[j] + ", ",
-
-    print ""
-    print "people: ",
-    for j in range(len(documents[i].people)):
-      print documents[i].people[j] + ", ",
-
-    print ""
-    print "orgs: ",
-    for j in range(len(documents[i].orgs)):
-      print documents[i].orgs[j] + ", ",
-
-    print ""
-    print "exchanges: ",
-    for j in range(len(documents[i].exchanges)):
-      print documents[i].exchanges[j] + ", ",
-    print ""
-
-    print "author: " + documents[i].author
-    print "dateline: " + documents[i].dateline
-    print "title: " + documents[i].title
-    print "body: " + documents[i].body"""
 
 
 if __name__ == "__main__":
