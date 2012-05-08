@@ -568,24 +568,32 @@ def main():
         fn[j] += 1
         
     print "class: " + str(j) + " tp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
-    if fp[j] == 0 and tp[j] == 0:
-      p.append(0.0)
+    if tp[j]+fp[j] == 0:
+      p.append( 0.0 )
+      print "\tERROR: div by zero calculating precision"
     else:
       p.append( float(tp[j])/(float(tp[j])+float(fp[j])) )
     
-    if fn[j] == 0 and tp[j] == 0:
-      r.append(0.0)
+    if tp[j]+fp[j] == 0:
+      r.append( 0.0 )
+      print "\tERROR: div by zero calculating recall"
     else:
       r.append( float(tp[j])/(float(tp[j])+float(fn[j])) )
     
-    if p[j] == 0 or r[j] == 0:
-      f1 = 0
+    if p[j]+r[j] == 0:
+      print "\tERROR: div by zero calculating f1 score"
+      f1.append( 0.0 )
     else:
       f1.append( float(p[j])*float(r[j])*2/(float(p[j])+float(r[j])) )
-
-      #print "doc: " + str(i) + " actual tag: " + results[i].actualTag + " guessed tag: ",
-      #print results[i].guessedTag + " score: " + str(results[i].score)
     
+    print "class: " + classes[j] + " f1 score: " + str(f1[j])
+
+  for j in range(len(classes)):
+    tp.append(0.0)
+    fp.append(0.0)
+    fn.append(0.0)
+    
+    for i in range(len(results)):
       if results[i].actualTag == classes[j] or results[i].guessedTag == classes[j]:
         if results[i].guessedTag == results[i].actualTag:
           tp[j] += 1.0
