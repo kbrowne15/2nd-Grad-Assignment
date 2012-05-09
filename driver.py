@@ -247,12 +247,9 @@ def extractTokensFromDoc(classes, documents, vocabularyWord):
     #stop once the first set of matching tags has been found
     while j < len(documents[i].tags) and notFound:
       index1 = 0
-<<<<<<< HEAD
       
       #go through classes we are training for to see if the tags match
       #stop once the first set of matching tags has been found
-=======
->>>>>>> 95e29febe3ef2309a7004ac90f609eea38c73aad
       while index1 < len(classes) and notFound:
         if documents[i].tags[j] == classes[index1]:
           notFound = False
@@ -366,8 +363,6 @@ def trainMultinomialNB(classes, documents):
 #      print "term1: " + tempVocWord + " times in doc: " + str(timesInDocs)
       Tct.append(timesInDocs)
       TctSum += (timesInDocs + 1)
-      if j%100 == 0:
-        print "100 words processed."
 
 #    print "Tct Sum: " + str(TctSum)
       
@@ -434,8 +429,6 @@ def main():
     else:
       className += tempClassNames[i]
       
-  #classes = []
-  
   #classes.append("China")
   #classes.append("Japan")
   
@@ -567,7 +560,9 @@ def main():
       if classes[j] != results[i].guessedTag and results[i].guessedTag != results[i].actualTag: #gT != c & gT != aT
         fn[j] += 1
         
-    print "class: " + str(j) + " tp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
+    print classes[j] 
+    print "\ttp: " + str(tp[j]) + " fp: " + str(fp[j]) + " fn: " + str(fn[j])
+	
     if tp[j]+fp[j] == 0:
       p.append( 0.0 )
       print "\tERROR: div by zero calculating precision"
@@ -586,7 +581,15 @@ def main():
     else:
       f1.append( float(p[j])*float(r[j])*2/(float(p[j])+float(r[j])) )
     
-    print "class: " + classes[j] + " f1 score: " + str(f1[j])
+    print "\tf1 score: " + str(f1[j])
+  
+  tp = []
+  fp = []
+  fn = []
+  
+  p = []
+  r = []
+  f1 = []
 
   for j in range(len(classes)):
     tp.append(0.0)
